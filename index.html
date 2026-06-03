@@ -160,6 +160,24 @@
       background: var(--accent-2);
     }
 
+    .text-button {
+      width: auto;
+      min-width: 70px;
+      padding: 0 12px;
+      font-weight: 700;
+    }
+
+    .output-button {
+      border-color: #344054;
+      background: #18212f;
+      color: #ffffff;
+    }
+
+    .output-button:hover {
+      border-color: #101828;
+      background: #101828;
+    }
+
     .danger {
       color: var(--danger);
     }
@@ -330,6 +348,11 @@
         min-width: 78px;
       }
 
+      .text-button {
+        min-width: 62px;
+        padding: 0 10px;
+      }
+
       textarea,
       iframe {
         min-height: 300px;
@@ -354,6 +377,7 @@
           JS 실행
         </label>
         <button class="btn primary" id="runButton" type="button" title="미리보기 새로고침">실행</button>
+        <button class="btn text-button output-button" id="outputButton" type="button" title="HTML만 새 탭에서 바로 출력">출력</button>
         <button class="btn" id="copyButton" type="button" title="HTML 복사" aria-label="HTML 복사">⧉</button>
         <button class="btn" id="downloadButton" type="button" title="HTML 다운로드" aria-label="HTML 다운로드">⇩</button>
         <button class="btn danger" id="clearButton" type="button" title="전체 삭제" aria-label="전체 삭제">×</button>
@@ -386,6 +410,10 @@
   <script>
     const STORAGE_KEY = "html-live-preview-code";
     const SCRIPT_KEY = "html-live-preview-scripts";
+
+    if (new URLSearchParams(window.location.search).get("output") === "1") {
+      window.location.replace(new URL("output.html", window.location.href));
+    }
 
     const sampleCode = `<!doctype html>
 <html lang="ko">
@@ -450,6 +478,7 @@
     const preview = document.querySelector("#preview");
     const scriptToggle = document.querySelector("#scriptToggle");
     const runButton = document.querySelector("#runButton");
+    const outputButton = document.querySelector("#outputButton");
     const copyButton = document.querySelector("#copyButton");
     const downloadButton = document.querySelector("#downloadButton");
     const clearButton = document.querySelector("#clearButton");
@@ -509,6 +538,13 @@
       showToast("HTML 파일을 다운로드했습니다.");
     }
 
+    function openOutputPage() {
+      render();
+      const url = new URL("output.html", window.location.href);
+      window.open(url.toString(), "_blank", "noopener,noreferrer");
+      showToast("새 탭에서 HTML만 출력했습니다.");
+    }
+
     async function copyHtml() {
       try {
         await navigator.clipboard.writeText(editor.value);
@@ -555,6 +591,7 @@
     editor.addEventListener("keydown", insertTab);
     scriptToggle.addEventListener("change", render);
     runButton.addEventListener("click", render);
+    outputButton.addEventListener("click", openOutputPage);
     copyButton.addEventListener("click", copyHtml);
     downloadButton.addEventListener("click", downloadHtml);
     clearButton.addEventListener("click", clearEditor);
