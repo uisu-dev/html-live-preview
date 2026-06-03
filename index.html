@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTML Live Preview</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --panel: #ffffff;
+      --panel-2: #eef2f6;
+      --text: #18212f;
+      --muted: #667085;
+      --line: #d7dee8;
+      --accent: #12715b;
+      --accent-2: #0b5f4c;
+      --danger: #b42318;
+      --shadow: 0 16px 45px rgba(26, 32, 44, 0.12);
+      --radius: 8px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(120deg, rgba(18, 113, 91, 0.09), transparent 34%),
+        linear-gradient(240deg, rgba(170, 69, 31, 0.08), transparent 30%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+    }
+
+    button,
+    textarea {
+      font: inherit;
+    }
+
+    .app {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: var(--radius);
+      background: #18212f;
+      color: #f8fafc;
+      font-family: var(--mono);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0;
+      flex: 0 0 auto;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.3;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn,
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+      white-space: nowrap;
+    }
+
+    .btn {
+      width: 38px;
+      padding: 0;
+    }
+
+    .toggle {
+      padding: 0 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .btn:hover,
+    .toggle:hover {
+      border-color: #b9c5d5;
+      background: #f8fafc;
+    }
+
+    .btn:active,
+    .toggle:active {
+      transform: translateY(1px);
+    }
+
+    .primary {
+      width: auto;
+      min-width: 92px;
+      padding: 0 14px;
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    .primary:hover {
+      border-color: var(--accent-2);
+      background: var(--accent-2);
+    }
+
+    .danger {
+      color: var(--danger);
+    }
+
+    .toggle input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+      gap: 14px;
+      min-height: 0;
+      padding: 14px;
+    }
+
+    .pane {
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .pane-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 43px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel-2);
+    }
+
+    .pane-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      color: #344054;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex: 0 0 auto;
+    }
+
+    .status {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      text-align: right;
+    }
+
+    .editor-wrap {
+      position: relative;
+      min-height: 0;
+      background: #101828;
+    }
+
+    textarea {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      resize: none;
+      border: 0;
+      outline: 0;
+      padding: 18px;
+      background: #101828;
+      color: #eff8ff;
+      caret-color: #8ee6c8;
+      font-family: var(--mono);
+      font-size: 14px;
+      line-height: 1.58;
+      letter-spacing: 0;
+      tab-size: 2;
+    }
+
+    textarea::selection {
+      background: rgba(142, 230, 200, 0.26);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      min-height: 360px;
+      border: 0;
+      background: #ffffff;
+    }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      z-index: 10;
+      max-width: min(360px, calc(100vw - 32px));
+      padding: 11px 13px;
+      border: 1px solid rgba(24, 33, 47, 0.1);
+      border-radius: var(--radius);
+      background: rgba(24, 33, 47, 0.94);
+      color: #ffffff;
+      box-shadow: var(--shadow);
+      font-size: 13px;
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 840px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+        width: 100%;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .pane {
+        min-height: 48vh;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .topbar {
+        padding: 12px;
+      }
+
+      .workspace {
+        gap: 10px;
+        padding: 10px;
+      }
+
+      .brand {
+        align-items: flex-start;
+      }
+
+      .subtitle {
+        display: none;
+      }
+
+      .primary {
+        min-width: 78px;
+      }
+
+      textarea,
+      iframe {
+        min-height: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand" aria-label="HTML Live Preview">
+        <div class="mark">&lt;/&gt;</div>
+        <div>
+          <h1>HTML Live Preview</h1>
+          <p class="subtitle">코드를 입력하면 오른쪽에서 바로 확인할 수 있습니다.</p>
+        </div>
+      </div>
+
+      <div class="actions" aria-label="도구 모음">
+        <label class="toggle" title="체크하면 입력한 script 태그가 미리보기 안에서 실행됩니다.">
+          <input id="scriptToggle" type="checkbox">
+          JS 실행
+        </label>
+        <button class="btn primary" id="runButton" type="button" title="미리보기 새로고침">실행</button>
+        <button class="btn" id="copyButton" type="button" title="HTML 복사" aria-label="HTML 복사">⧉</button>
+        <button class="btn" id="downloadButton" type="button" title="HTML 다운로드" aria-label="HTML 다운로드">⇩</button>
+        <button class="btn danger" id="clearButton" type="button" title="전체 삭제" aria-label="전체 삭제">×</button>
+      </div>
+    </header>
+
+    <section class="workspace" aria-label="HTML 편집 및 미리보기">
+      <section class="pane" aria-label="HTML 코드 입력">
+        <div class="pane-header">
+          <div class="pane-title"><span class="dot"></span>Editor</div>
+          <div class="status" id="editorStatus">저장됨</div>
+        </div>
+        <div class="editor-wrap">
+          <textarea id="editor" spellcheck="false" aria-label="HTML 코드 입력"></textarea>
+        </div>
+      </section>
+
+      <section class="pane" aria-label="HTML 미리보기">
+        <div class="pane-header">
+          <div class="pane-title"><span class="dot"></span>Preview</div>
+          <div class="status" id="previewStatus">준비됨</div>
+        </div>
+        <iframe id="preview" title="HTML 미리보기" sandbox="allow-forms allow-modals allow-popups"></iframe>
+      </section>
+    </section>
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const STORAGE_KEY = "html-live-preview-code";
+    const SCRIPT_KEY = "html-live-preview-scripts";
+
+    const sampleCode = `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>미리보기 예제</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: #f3f7fb;
+      color: #172033;
+      font-family: system-ui, sans-serif;
+    }
+
+    .box {
+      width: min(560px, calc(100vw - 32px));
+      max-width: 560px;
+      padding: 32px;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      background: white;
+      box-shadow: 0 18px 50px rgba(24, 33, 47, 0.12);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      letter-spacing: 0;
+      word-break: keep-all;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.7;
+      word-break: keep-all;
+    }
+
+    @media (max-width: 480px) {
+      .box {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>바로 보이는 HTML</h1>
+    <p>왼쪽 코드를 바꾸면 이 화면이 자동으로 업데이트됩니다.</p>
+  </div>
+</body>
+</html>`;
+
+    const editor = document.querySelector("#editor");
+    const preview = document.querySelector("#preview");
+    const scriptToggle = document.querySelector("#scriptToggle");
+    const runButton = document.querySelector("#runButton");
+    const copyButton = document.querySelector("#copyButton");
+    const downloadButton = document.querySelector("#downloadButton");
+    const clearButton = document.querySelector("#clearButton");
+    const editorStatus = document.querySelector("#editorStatus");
+    const previewStatus = document.querySelector("#previewStatus");
+    const toast = document.querySelector("#toast");
+
+    let renderTimer = 0;
+    let toastTimer = 0;
+
+    function showToast(message) {
+      window.clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("show");
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1800);
+    }
+
+    function setSandbox() {
+      const permissions = ["allow-forms", "allow-modals", "allow-popups"];
+      if (scriptToggle.checked) {
+        permissions.push("allow-scripts");
+      }
+      preview.setAttribute("sandbox", permissions.join(" "));
+    }
+
+    function render() {
+      setSandbox();
+      preview.srcdoc = editor.value;
+      const now = new Date();
+      const time = now.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+      previewStatus.textContent = `${time} 업데이트`;
+      editorStatus.textContent = `${editor.value.length.toLocaleString("ko-KR")}자`;
+      localStorage.setItem(STORAGE_KEY, editor.value);
+      localStorage.setItem(SCRIPT_KEY, scriptToggle.checked ? "1" : "0");
+    }
+
+    function queueRender() {
+      window.clearTimeout(renderTimer);
+      editorStatus.textContent = "입력 중";
+      renderTimer = window.setTimeout(render, 180);
+    }
+
+    function downloadHtml() {
+      const blob = new Blob([editor.value], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "preview.html";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      showToast("HTML 파일을 다운로드했습니다.");
+    }
+
+    async function copyHtml() {
+      try {
+        await navigator.clipboard.writeText(editor.value);
+        showToast("HTML 코드를 복사했습니다.");
+      } catch (error) {
+        editor.select();
+        document.execCommand("copy");
+        showToast("선택된 HTML 코드를 복사했습니다.");
+      }
+    }
+
+    function clearEditor() {
+      if (!editor.value.trim()) {
+        return;
+      }
+      const confirmed = window.confirm("입력한 HTML 코드를 모두 삭제할까요?");
+      if (!confirmed) {
+        return;
+      }
+      editor.value = "";
+      render();
+      editor.focus();
+      showToast("에디터를 비웠습니다.");
+    }
+
+    function insertTab(event) {
+      if (event.key !== "Tab") {
+        return;
+      }
+
+      event.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.value = `${editor.value.slice(0, start)}  ${editor.value.slice(end)}`;
+      editor.selectionStart = start + 2;
+      editor.selectionEnd = start + 2;
+      queueRender();
+    }
+
+    editor.value = localStorage.getItem(STORAGE_KEY) || sampleCode;
+    scriptToggle.checked = localStorage.getItem(SCRIPT_KEY) === "1";
+
+    editor.addEventListener("input", queueRender);
+    editor.addEventListener("keydown", insertTab);
+    scriptToggle.addEventListener("change", render);
+    runButton.addEventListener("click", render);
+    copyButton.addEventListener("click", copyHtml);
+    downloadButton.addEventListener("click", downloadHtml);
+    clearButton.addEventListener("click", clearEditor);
+
+    render();
+  </script>
+</body>
+</html>
